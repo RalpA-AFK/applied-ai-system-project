@@ -37,9 +37,11 @@ class Recommender:
     Required by tests/test_recommender.py
     """
     def __init__(self, songs: List[Song]):
+        """Initialize the recommender with a list of songs."""
         self.songs = songs
 
     def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
+        """Recommend top-k songs for a user profile."""
         # Content-based scoring system
         scored = []
         for song in self.songs:
@@ -50,6 +52,7 @@ class Recommender:
         return [s for s, _ in scored[:k]]
 
     def explain_recommendation(self, user: UserProfile, song: Song) -> str:
+        """Generate explanation for a song recommendation."""
         # Simple explanation
         explanation = []
         if song.genre == user.favorite_genre:
@@ -68,6 +71,7 @@ class Recommender:
 
 import csv
 def load_songs(csv_path: str) -> List[Song]:
+    """Load songs from a CSV file."""
     """
     Loads songs from a CSV file and returns a list of Song objects.
     Required by src/main.py
@@ -90,6 +94,7 @@ def load_songs(csv_path: str) -> List[Song]:
     return songs
 
 def score_song(song: Song, user: UserProfile) -> float:
+    """Score a song for a given user profile."""
     """
     Scores a song for a user based on agreed weights and thresholds.
     """
@@ -136,6 +141,7 @@ def score_song(song: Song, user: UserProfile) -> float:
     return score
 
 def recommend_songs(user_prefs: Dict, songs: List[Song], k: int = 5) -> List[Tuple[Song, float, str]]:
+    """Recommend top-k songs with scores and explanations."""
     """
     Functional implementation of the recommendation logic.
     Required by src/main.py
