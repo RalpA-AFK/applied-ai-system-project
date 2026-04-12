@@ -41,9 +41,10 @@ def main() -> None:
             for i in range(song_count):
                 if i < len(recs):
                     song, score, explanation = recs[i]
-                    song_str = f"{song.title} ({score:.2f})"
+                    # Highlight top songs with a star and compact explanation
+                    song_str = f"★ {song.title} ({score:.2f})"
                     expl_str = explanation.replace(", ", "; ")
-                    cell = f"{song_str}\n{expl_str}"
+                    cell = f"{song_str}\n→ {expl_str}"
                     row.append(cell)
                 else:
                     row.append("-")
@@ -62,17 +63,18 @@ def main() -> None:
         print("|" + "|".join(["-"*w for w in col_widths]) + "|")
         # Rows
         for row in user_rows:
-            print("|", end="")
-            for cell, width in zip(row, col_widths):
-                # For multi-line cells (song explanations), align each line
-                lines = cell.split("\n")
-                if len(lines) == 1:
-                    print(f" {{:<{width}}} |".format(lines[0]), end="")
-                else:
-                    # Print first line, then pad subsequent lines
-                    print(f" {{:<{width}}} |".format(lines[0]), end="")
-            print()
-        print("-"*table_width)
+            # For each cell, split into lines for multi-line support
+            split_cells = [cell.split("\n") for cell in row]
+            max_lines = max(len(lines) for lines in split_cells)
+            for line_idx in range(max_lines):
+                print("|", end="")
+                for cell_lines, width in zip(split_cells, col_widths):
+                    if line_idx < len(cell_lines):
+                        print(f" {{:<{width}}} |".format(cell_lines[line_idx]), end="")
+                    else:
+                        print(f" {{:<{width}}} |".format(""), end="")
+                print()
+            print("|" + "|".join(["-"*w for w in col_widths]) + "|")
 
 
 if __name__ == "__main__":
