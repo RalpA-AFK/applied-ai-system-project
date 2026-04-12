@@ -17,17 +17,41 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
-
-Some prompts to answer:
 
 - What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
+  - Each song is described by: genre, mood, energy, tempo (BPM), danceability, acousticness, title, and artist.
+
 - What information does your `UserProfile` store
+  - The user profile contains: preferred genre, preferred mood, target energy, target tempo, target danceability, target acousticness, and optionally a favorite title and artist.
+
 - How does your `Recommender` compute a score for each song
+  - The recommender compares each song’s features to the user’s preferences. Categorical features (genre, mood, title, artist) give full points if they match. Numeric features (energy, tempo, danceability, acousticness) are scored higher the closer they are to the user’s target, with a maximum if within a set threshold. Each feature has a weight, and the total score is the weighted sum.
+
 - How do you choose which songs to recommend
+  - Only songs with a score of 0.85 or higher are considered. The top K highest-scoring songs are recommended to the user.
 
 You can include a simple diagram or bullet list if helpful.
+
+**Data Flow Diagram:**
+
+```
+User Preferences (UserProfile)
+  │
+  ▼
+  [Recommender]
+  │
+  ▼
+Song Catalog (songs.csv → Song objects)
+  │
+  ▼
+Each song is scored against the user profile
+  │
+  ▼
+Songs with score ≥ 0.85 are recommended
+  │
+  ▼
+Top K recommendations are shown to the user
+```
 
 ---
 
@@ -72,7 +96,9 @@ Use this section to document the experiments you ran. For example:
 
 - What happened when you changed the weight on genre from 2.0 to 0.5
 - What happened when you added tempo or valence to the score
+The scored varied slighlty as i needed to lower the upperbounds of other paramater values so that everything still added up to 1 at the max value
 - How did your system behave for different types of users
+
 
 ---
 
@@ -83,8 +109,10 @@ Summarize some limitations of your recommender.
 Examples:
 
 - It only works on a tiny catalog
+It only works on a user with a predefined score that can be compared to 
 - It does not understand lyrics or language
 - It might over favor one genre or mood
+the value scoring heavily favors mood tempo and energy
 
 You will go deeper on this in your model card.
 
@@ -136,8 +164,6 @@ Real world recommendations seem to work off a list of values that are then used 
 
 Describe your scoring logic in plain language.
 
-- What features of each song does it consider
-
 What features of each song does it consider
 
 Our system considers the following features for each song:
@@ -174,8 +200,11 @@ Try to avoid code in this section, treat it like an explanation to a non program
 Describe your dataset.
 
 - How many songs are in `data/songs.csv`
+20 songs total
 - Did you add or remove any songs
+i added 10 songs
 - What kinds of genres or moods are represented
+
 - Whose taste does this data mostly reflect
 
 ---
@@ -235,4 +264,9 @@ A few sentences about what you learned:
 - What surprised you about how your system behaved
 - How did building this change how you think about real music recommenders
 - Where do you think human judgment still matters, even if the model seems "smart"
+
+
+Genres represented: pop, lofi, rock, ambient, jazz, synthwave, indie pop, world, classical, chiptune, bluegrass, folk, hip hop, metal, new age, reggae, space
+
+Moods represented: happy, chill, intense, relaxed, moody, focused, spiritual, calm, playful, joyful, nostalgic, confident, aggressive, peaceful, laid-back, epic
 

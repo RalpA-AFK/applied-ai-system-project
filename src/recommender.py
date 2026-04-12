@@ -69,11 +69,9 @@ class Recommender:
 import csv
 def load_songs(csv_path: str) -> List[Song]:
     """
-    Loads songs from a CSV file.
+    Loads songs from a CSV file and returns a list of Song objects.
     Required by src/main.py
     """
-    # TODO: Implement CSV loading logic
-    print(f"Loading songs from {csv_path}...")
     songs = []
     with open(csv_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
@@ -86,7 +84,6 @@ def load_songs(csv_path: str) -> List[Song]:
                 mood=row['mood'],
                 energy=float(row['energy']),
                 tempo_bpm=float(row['tempo_bpm']),
-                # valence removed
                 danceability=float(row['danceability']),
                 acousticness=float(row['acousticness'])
             ))
@@ -96,7 +93,6 @@ def score_song(song: Song, user: UserProfile) -> float:
     """
     Scores a song for a user based on agreed weights and thresholds.
     """
-    # TODO: Implement scoring logic
     score = 0.0
     # Weights
     weights = {
@@ -144,7 +140,6 @@ def recommend_songs(user_prefs: Dict, songs: List[Song], k: int = 5) -> List[Tup
     Functional implementation of the recommendation logic.
     Required by src/main.py
     """
-    # TODO: Implement scoring and ranking logic
     # Expected return format: (song_dict, score, explanation)
     user = UserProfile(
         favorite_genre=user_prefs.get('genre', ''),

@@ -1,26 +1,68 @@
-def test_hiphop_confident_profile_recommendations():
-    """
-    Test recommendations for a hip hop/confident taste profile using the expanded song set.
-    """
-    from src.recommender import load_songs, recommend_songs
-    # Load the full song list from CSV
+from src.recommender import load_songs, recommend_songs
+
+# Contrasting user profiles and their song histories (by song id)
+contrasting_users = [
+    {
+        "prefs": {"genre": "pop", "mood": "happy", "energy": 0.8, "tempo": 120, "danceability": 0.8, "acousticness": 0.2},
+        "history": [1, 5, 10, 13, 14]
+    },
+    {
+        "prefs": {"genre": "metal", "mood": "aggressive", "energy": 0.95, "tempo": 160, "danceability": 0.55, "acousticness": 0.05},
+        "history": [17, 3, 5, 8, 20]
+    },
+    {
+        "prefs": {"genre": "classical", "mood": "calm", "energy": 0.3, "tempo": 90, "danceability": 0.45, "acousticness": 0.95},
+        "history": [12, 4, 6, 18, 7]
+    },
+    {
+        "prefs": {"genre": "reggae", "mood": "laid-back", "energy": 0.6, "tempo": 76, "danceability": 0.78, "acousticness": 0.5},
+        "history": [19, 2, 6, 15, 9]
+    },
+    {
+        "prefs": {"genre": "chiptune", "mood": "playful", "energy": 0.78, "tempo": 140, "danceability": 0.8, "acousticness": 0.12},
+        "history": [13, 8, 20, 1, 14]
+    },
+]
+
+# Similar user profiles and their song histories (by song id)
+similar_users = [
+    {
+        "prefs": {"genre": "lofi", "mood": "chill", "energy": 0.4, "tempo": 80, "danceability": 0.6, "acousticness": 0.8},
+        "history": [2, 4, 9, 6, 18]
+    },
+    {
+        "prefs": {"genre": "lofi", "mood": "chill", "energy": 0.42, "tempo": 78, "danceability": 0.62, "acousticness": 0.71},
+        "history": [2, 4, 9, 6, 18]
+    },
+    {
+        "prefs": {"genre": "lofi", "mood": "chill", "energy": 0.35, "tempo": 72, "danceability": 0.58, "acousticness": 0.86},
+        "history": [2, 4, 9, 6, 18]
+    },
+    {
+        "prefs": {"genre": "lofi", "mood": "chill", "energy": 0.4, "tempo": 80, "danceability": 0.6, "acousticness": 0.8},
+        "history": [2, 4, 9, 6, 18]
+    },
+    {
+        "prefs": {"genre": "lofi", "mood": "chill", "energy": 0.42, "tempo": 78, "danceability": 0.62, "acousticness": 0.71},
+        "history": [2, 4, 9, 6, 18]
+    },
+]
+
+def test_contrasting_users_recommendations():
     songs = load_songs("data/songs.csv")
-    user_prefs = {
-        "genre": "hip hop",
-        "mood": "confident",
-        "energy": 0.85,
-        "tempo": 100,
-        "danceability": 0.8,
-        "acousticness": 0.15,
-        "title": "Urban Pulse",
-        "artist": "Metro Beat"
-    }
-    results = recommend_songs(user_prefs, songs, k=5)
-    # At least one result should be Urban Pulse by Metro Beat
-    assert any(song.title == "Urban Pulse" and song.artist == "Metro Beat" for song, score, explanation in results)
-    # All results should have a score >= 0.85
-    for song, score, explanation in results:
-        assert score >= 0.85
+    for user in contrasting_users:
+        results = recommend_songs(user["prefs"], songs, k=5)
+        # Each user should get at least one song from their history in recommendations
+        recommended_ids = [song.id for song, score, explanation in results]
+        assert any(song_id in recommended_ids for song_id in user["history"])
+
+def test_similar_users_recommendations():
+    songs = load_songs("data/songs.csv")
+    for user in similar_users:
+        results = recommend_songs(user["prefs"], songs, k=5)
+        recommended_ids = [song.id for song, score, explanation in results]
+        # All similar users should have significant overlap in recommendations
+        assert set(recommended_ids).intersection(set([2, 4, 9, 6, 18]))
 from src.recommender import Song, UserProfile, Recommender
 
 def make_small_recommender() -> Recommender:
