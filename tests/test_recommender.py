@@ -1,3 +1,26 @@
+def test_hiphop_confident_profile_recommendations():
+    """
+    Test recommendations for a hip hop/confident taste profile using the expanded song set.
+    """
+    from src.recommender import load_songs, recommend_songs
+    # Load the full song list from CSV
+    songs = load_songs("data/songs.csv")
+    user_prefs = {
+        "genre": "hip hop",
+        "mood": "confident",
+        "energy": 0.85,
+        "tempo": 100,
+        "danceability": 0.8,
+        "acousticness": 0.15,
+        "title": "Urban Pulse",
+        "artist": "Metro Beat"
+    }
+    results = recommend_songs(user_prefs, songs, k=5)
+    # At least one result should be Urban Pulse by Metro Beat
+    assert any(song.title == "Urban Pulse" and song.artist == "Metro Beat" for song, score, explanation in results)
+    # All results should have a score >= 0.85
+    for song, score, explanation in results:
+        assert score >= 0.85
 from src.recommender import Song, UserProfile, Recommender
 
 def make_small_recommender() -> Recommender:

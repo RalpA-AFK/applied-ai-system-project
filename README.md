@@ -132,11 +132,38 @@ Example:
 
 ## 3. How It Works (Short Explanation)
 
+Real world recommendations seem to work off a list of values that are then used to score a form of media in relation to another and are then filtered based on likeness to each other. This makes it easier to recommend a frequent user rather then a new user. Do to this many companys add some other base line recommendations that move based on popularity rather than likeness.
+
 Describe your scoring logic in plain language.
 
 - What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
+
+What features of each song does it consider
+
+Our system considers the following features for each song:
+- Genre
+- Mood
+- Energy
+- Tempo (BPM)
+- Danceability
+- Acousticness
+- Title (exact match, very low weight)
+- Artist (exact match, very low weight)
+
+What information about the user does it use
+
+The user profile includes:
+- Preferred genre
+- Preferred mood
+- Target energy level
+- Target tempo (BPM)
+- Target danceability
+- Target acousticness
+- (Optionally) favorite title and artist for exact matches
+
+How does it turn those into a number
+
+Each song is scored by comparing its features to the user's preferences. Categorical features (genre, mood, title, artist) give full points if they match exactly. Numeric features (energy, tempo, danceability, acousticness) give higher scores the closer they are to the user's target, with a maximum score if within a set threshold. Each feature has a weight, and the total score is the weighted sum. Only songs scoring 0.85 or higher are recommended.
 
 Try to avoid code in this section, treat it like an explanation to a non programmer.
 
