@@ -1,0 +1,48 @@
+UPGRADE PLAN — Applied AI System Project
+=========================================================
+
+CURRENT DIRECTIVE: App Staging
+--------------------------------
+We are moving from a rule-based simulation to a real conversational music
+recommender app. Claude chats with the user to build their taste profile,
+then uses the Spotify API to retrieve and recommend real songs.
+
+HOW IT WORKS
+-------------
+1. ONBOARDING CONVERSATION
+   Claude asks the user natural questions about their taste (favorite
+   artists, genres, moods, activities) to dynamically build a profile.
+
+2. SPOTIFY AS THE DATA LAYER
+   Claude uses the Spotify Web API as a tool to search real tracks and
+   pull audio features (energy, tempo, valence, danceability, etc.).
+   Replaces the static 20-song CSV catalog entirely.
+
+3. AGENTIC RECOMMENDATION LOOP
+   Claude retrieves candidates, evaluates if they match the user's
+   described taste, and refines the search if the results are weak.
+
+4. FEEDBACK AND REFINEMENT
+   User can say "more like that", "less EDM", "something for the gym"
+   and Claude adjusts recommendations on the fly.
+
+WHAT WE KEEP
+-------------
+- Feature-matching scoring logic from src/recommender.py (used as a
+  local filter on top of Spotify results)
+- Test structure from tests/
+
+WHAT WE REPLACE
+----------------
+- Static CSV catalog       → Spotify Web API
+- Hardcoded UserProfiles   → Dynamically built from conversation
+- CLI demo in main.py      → Conversational chat loop
+
+FEATURES THIS COVERS (Assignment Requirements)
+-----------------------------------------------
+- Agentic Workflow         Claude plans, searches, evaluates, refines
+- RAG                      Spotify data retrieved before every response
+- Logging                  Every step logged to timestamped files
+- Guardrails               Handles bad input and API errors gracefully
+- Eval / Testing Suite     Automated script scoring agent performance
+- Setup Cleanup            Pinned requirements, .env.example, README
