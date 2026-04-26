@@ -69,29 +69,6 @@ class Recommender:
             explanation.append("Acousticness close to preference")
         return ", ".join(explanation) if explanation else "No strong match"
 
-import csv
-def load_songs(csv_path: str) -> List[Song]:
-    """Load songs from a CSV file."""
-    """
-    Loads songs from a CSV file and returns a list of Song objects.
-    Required by src/main.py
-    """
-    songs = []
-    with open(csv_path, newline='', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            songs.append(Song(
-                id=int(row['id']),
-                title=row['title'],
-                artist=row['artist'],
-                genre=row['genre'],
-                mood=row['mood'],
-                energy=float(row['energy']),
-                tempo_bpm=float(row['tempo_bpm']),
-                danceability=float(row['danceability']),
-                acousticness=float(row['acousticness'])
-            ))
-    return songs
 
 def score_song(song: Song, user: UserProfile) -> float:
     """Score a song for a given user profile."""

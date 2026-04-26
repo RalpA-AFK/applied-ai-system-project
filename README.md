@@ -1,272 +1,137 @@
-# 🎵 Music Recommender Simulation
+# Music Recommender
 
-## Project Summary
-
-In this project you will build and explain a small music recommender system.
-
-Your goal is to:
-
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
-
-Replace this paragraph with your own summary of what your version does.
+A conversational music recommendation app. You chat with an AI that learns your taste, searches Spotify for real tracks, and ranks them for you — all running in your browser on localhost.
 
 ---
 
-## How The System Works
+## How It Works
 
-
-- What features does each `Song` use in your system
-  - Each song is described by: genre, mood, energy, tempo (BPM), danceability, acousticness, title, and artist.
-
-- What information does your `UserProfile` store
-  - The user profile contains: preferred genre, preferred mood, target energy, target tempo, target danceability, target acousticness, and optionally a favorite title and artist.
-
-- How does your `Recommender` compute a score for each song
-  - The recommender compares each song’s features to the user’s preferences. Categorical features (genre, mood, title, artist) give full points if they match. Numeric features (energy, tempo, danceability, acousticness) are scored higher the closer they are to the user’s target, with a maximum if within a set threshold. Each feature has a weight, and the total score is the weighted sum.
-
-- How do you choose which songs to recommend
-  - Only songs with a score of 0.85 or higher are considered. The top K highest-scoring songs are recommended to the user.
-
-You can include a simple diagram or bullet list if helpful.
-
-**Data Flow Diagram:**
+1. **Chat** — A Groq-powered AI (Llama 3) asks you a few questions about your mood, genre preferences, energy level, and tempo
+2. **Search** — Once it understands your taste, it searches the Spotify API for real tracks matching your genre
+3. **Rank** — Groq reads the results and ranks them by how well they fit what you described
+4. **Display** — The top picks are shown in a clean web UI
 
 ```
-User Preferences (UserProfile)
-  │
-  ▼
-  [Recommender]
-  │
-  ▼
-Song Catalog (songs.csv → Song objects)
-  │
-  ▼
-Each song is scored against the user profile
-  │
-  ▼
-Songs with score ≥ 0.85 are recommended
-  │
-  ▼
-Top K recommendations are shown to the user
+You (chat)
+    │
+    ▼
+Groq / Llama 3 (conversation + ranking)
+    │
+    ▼
+Spotify Web API (track search)
+    │
+    ▼
+Ranked recommendations shown in browser
 ```
 
 ---
 
-## Getting Started
+## Setup
 
-### Setup
+### 1. Clone the repo
 
-1. Create a virtual environment (optional but recommended):
+```bash
+git clone <your-repo-url>
+cd applied-ai-system-project
+```
 
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate      # Mac or Linux
-   .venv\Scripts\activate         # Windows
+### 2. Create a virtual environment
 
-2. Install dependencies
+```bash
+python -m venv .venv
+source .venv/bin/activate      # Mac / Linux
+.venv\Scripts\activate         # Windows
+```
+
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Run the app:
+### 4. Set up your API keys
+
+Copy the example env file and fill in your keys:
 
 ```bash
-python -m src.main
+cp .env.example .env
 ```
 
-### Running Tests
+Then open `.env` and add your credentials (see the sections below for how to get them).
 
-Run the starter tests with:
+---
+
+## Getting a Groq API Key
+
+Groq provides free access to Llama 3 with no credit card required.
+
+1. Go to [console.groq.com](https://console.groq.com) and sign up
+2. Navigate to **API Keys** in the left sidebar
+3. Click **Create API Key**
+4. Copy the key and paste it into your `.env` file:
+
+```
+GROQ_API_KEY=your_key_here
+```
+
+---
+
+## Getting Spotify API Credentials
+
+Spotify's Web API is free for non-commercial use.
+
+1. Go to [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and log in with your Spotify account
+2. Click **Create App**
+3. Fill in any name and description
+4. Set the Redirect URI to `http://localhost:8888/callback`
+5. Click **Save**
+6. On your app's page, click **Settings** to find your **Client ID** and **Client Secret**
+7. Copy both into your `.env` file:
+
+```
+SPOTIFY_CLIENT_ID=your_client_id_here
+SPOTIFY_CLIENT_SECRET=your_client_secret_here
+```
+
+> Note: New Spotify apps start in Development mode, which limits search results to 10 tracks per request. This is enough for the app to work.
+
+---
+
+## Running the App
 
 ```bash
-pytest
+python -m streamlit run app.py
 ```
 
-You can add more tests in `tests/test_recommender.py`.
+The app will open automatically at `http://localhost:8501`.
 
 ---
 
-## Experiments You Tried
+## Running Tests
 
-Use this section to document the experiments you ran. For example:
+```bash
+python -m pytest -v
+```
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-The scored varied slighlty as i needed to lower the upperbounds of other paramater values so that everything still added up to 1 at the max value
-- How did your system behave for different types of users
-
-
----
-
-## Limitations and Risks
-
-Summarize some limitations of your recommender.
-
-Examples:
-
-- It only works on a tiny catalog
-It only works on a user with a predefined score that can be compared to 
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-the value scoring heavily favors mood tempo and energy
-
-You will go deeper on this in your model card.
+The test suite covers:
+- In-memory scoring logic (`tests/test_recommender.py`)
+- Spotify search integration (`tests/test_spotify.py`)
+- Groq ranking integration (`tests/test_groq.py`)
 
 ---
 
-## Reflection
+## Project Structure
 
-Read and complete `model_card.md`:
-
-[**Model Card**](model_card.md)
-
-Write 1 to 2 paragraphs here about what you learned:
-
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
-
-
----
-
-## 7. `model_card_template.md`
-
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}  
-
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
-
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeFinder 1.0
-
----
-
-## 2. Intended Use
-
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
-
----
-
-## 3. How It Works (Short Explanation)
-
-Real world recommendations seem to work off a list of values that are then used to score a form of media in relation to another and are then filtered based on likeness to each other. This makes it easier to recommend a frequent user rather then a new user. Do to this many companys add some other base line recommendations that move based on popularity rather than likeness.
-
-Describe your scoring logic in plain language.
-
-What features of each song does it consider
-
-Our system considers the following features for each song:
-- Genre
-- Mood
-- Energy
-- Tempo (BPM)
-- Danceability
-- Acousticness
-- Title (exact match, very low weight)
-- Artist (exact match, very low weight)
-
-What information about the user does it use
-
-The user profile includes:
-- Preferred genre
-- Preferred mood
-- Target energy level
-- Target tempo (BPM)
-- Target danceability
-- Target acousticness
-- (Optionally) favorite title and artist for exact matches
-
-How does it turn those into a number
-
-Each song is scored by comparing its features to the user's preferences. Categorical features (genre, mood, title, artist) give full points if they match exactly. Numeric features (energy, tempo, danceability, acousticness) give higher scores the closer they are to the user's target, with a maximum score if within a set threshold. Each feature has a weight, and the total score is the weighted sum. Only songs scoring 0.85 or higher are recommended.
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
-
----
-
-## 4. Data
-
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-20 songs total
-- Did you add or remove any songs
-i added 10 songs
-- What kinds of genres or moods are represented
-
-- Whose taste does this data mostly reflect
-
----
-
-## 5. Strengths
-
-Where does your recommender work well
-
-You can think about:
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
-
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
-
----
-
-## 7. Evaluation
-
-How did you check your system
-
-Examples:
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
-
----
-
-## 8. Future Work
-
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
-
----
-
-## 9. Personal Reflection
-
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
-
-
-Genres represented: pop, lofi, rock, ambient, jazz, synthwave, indie pop, world, classical, chiptune, bluegrass, folk, hip hop, metal, new age, reggae, space
-
-Moods represented: happy, chill, intense, relaxed, moody, focused, spiritual, calm, playful, joyful, nostalgic, confident, aggressive, peaceful, laid-back, epic
-
+```
+app.py                  # Streamlit web app (entry point)
+src/
+  chat.py               # Groq conversation logic
+  spotify.py            # Spotify search and Groq-based ranking
+  recommender.py        # Song and UserProfile data models, scoring logic
+  main.py               # Terminal entry point (alternative to app.py)
+tests/
+  test_recommender.py   # Unit tests for scoring logic
+  test_spotify.py       # Integration tests for Spotify API
+  test_groq.py          # Integration tests for Groq ranking
+.env.example            # Template for required environment variables
+```
