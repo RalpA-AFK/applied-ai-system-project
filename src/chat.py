@@ -3,8 +3,11 @@ import json
 import re
 from groq import Groq
 from dotenv import load_dotenv
+from .logger import get_logger
 
 load_dotenv(override=True)
+
+log = get_logger("chat")
 
 SYSTEM_PROMPT = """You are a friendly music taste assistant. Chat naturally with the user to learn what kind of music they want right now. Ask 3-4 short, conversational questions covering:
 - Genre (e.g. pop, rock, jazz, lo-fi, hip hop, classical, metal, reggae)
@@ -29,12 +32,19 @@ Once you have gathered enough information, output ONLY a JSON block with no extr
 
 def get_response(messages: list) -> str:
     """Send a message list to Groq and return the response text."""
-    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=messages,
-    )
-    return response.choices[0].message.content
+    log.info("Sending %d messages to Groq", len(messages))
+    try:
+        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=messages,
+        )
+        text = response.choices[0].message.content
+        log.info("Groq response received (%d chars)", len(text))
+        return text
+    except Exception as e:
+        log.error("Groq API error: %s", e)
+        raise
 
 
 def stream_response(messages: list):
@@ -55,7 +65,12 @@ def extract_prefs(text: str) -> dict | None:
     """Parse a JSON prefs block from the model response. Returns None if not found."""
     match = re.search(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL)
     if match:
-        return json.loads(match.group(1))
+        try:
+            prefs = json.loads(match.group(1))
+            log.info("Prefs extracted: %s", prefs)
+            return prefs
+        except json.JSONDecodeError as e:
+            log.error("Failed to parse prefs JSON: %s", e)
     return None
 
 

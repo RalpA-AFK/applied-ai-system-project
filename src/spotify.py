@@ -6,8 +6,13 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from dotenv import load_dotenv
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from .chat import get_response
+from .logger import get_logger
 
 load_dotenv(override=True)
+
+log = get_logger("spotify")
+
+_VALID_MOODS = {"happy", "chill", "intense", "relaxed", "moody", "focused", "calm", "aggressive", "playful"}
 
 
 def _client():
@@ -17,18 +22,41 @@ def _client():
     ))
 
 
+def _validate_prefs(prefs: dict) -> dict:
+    """Clamp numeric prefs to valid ranges and fall back unknown moods to 'chill'."""
+    safe = dict(prefs)
+    safe["energy"] = max(0.0, min(1.0, float(safe.get("energy", 0.5))))
+    safe["danceability"] = max(0.0, min(1.0, float(safe.get("danceability", 0.5))))
+    safe["acousticness"] = max(0.0, min(1.0, float(safe.get("acousticness", 0.5))))
+    safe["tempo"] = max(40, min(220, float(safe.get("tempo", 120))))
+    if safe.get("mood") not in _VALID_MOODS:
+        log.warning("Unknown mood '%s', defaulting to 'chill'", safe.get("mood"))
+        safe["mood"] = "chill"
+    return safe
+
+
 def search_songs(genre: str, limit: int = 10) -> list:
-    """Search Spotify by genre and return a list of dicts with title, artist, and genre."""
+    """Search Spotify by genre. Falls back to a plain keyword search if genre returns nothing."""
+    limit = min(limit, 10)
     for attempt in range(3):
         try:
             sp = _client()
-            results = sp.search(q=f"genre:{genre}", type="track", limit=min(limit, 10))
+            log.info("Searching Spotify: genre='%s', limit=%d (attempt %d)", genre, limit, attempt + 1)
+            results = sp.search(q=f"genre:{genre}", type="track", limit=limit)
             tracks = results["tracks"]["items"]
+
+            if not tracks:
+                log.warning("genre:'%s' returned 0 tracks, trying plain keyword search", genre)
+                results = sp.search(q=genre, type="track", limit=limit)
+                tracks = results["tracks"]["items"]
+
+            log.info("Spotify returned %d tracks for '%s'", len(tracks), genre)
             return [
                 {"title": t["name"], "artist": t["artists"][0]["name"], "genre": genre}
                 for t in tracks
             ]
-        except (RequestsConnectionError, spotipy.SpotifyException):
+        except (RequestsConnectionError, spotipy.SpotifyException) as e:
+            log.error("Spotify error on attempt %d: %s", attempt + 1, e)
             if attempt == 2:
                 raise
             time.sleep(1.5 * (attempt + 1))
@@ -38,7 +66,10 @@ def search_songs(genre: str, limit: int = 10) -> list:
 def rank_songs(prefs: dict, songs: list, k: int = 5) -> list:
     """Ask Groq to rank songs by how well they match the user's preferences. Returns top-k dicts."""
     if not songs:
+        log.warning("rank_songs called with empty song list")
         return []
+
+    prefs = _validate_prefs(prefs)
 
     track_list = "\n".join(
         f"{i+1}. {s['title']} by {s['artist']}" for i, s in enumerate(songs)
@@ -64,9 +95,12 @@ def rank_songs(prefs: dict, songs: list, k: int = 5) -> list:
     ]
 
     try:
+        log.info("Asking Groq to rank %d songs for prefs: %s", len(songs), prefs)
         response = get_response(messages)
         match = json.loads(response.strip())
         ranked = [songs[i - 1] for i in match if 1 <= i <= len(songs)]
+        log.info("Groq ranked %d songs successfully", len(ranked))
         return ranked[:k]
-    except Exception:
+    except Exception as e:
+        log.error("Groq ranking failed: %s — returning unranked fallback", e)
         return songs[:k]
