@@ -1,0 +1,19 @@
+run app: python -m streamlit run app.py
+
+display search songs and explain how it ranks
+
+run guardrail: python tests/eval.py
+
+showcase logs/ 
+
+show guardrail fallback trigger |run| : 
+
+python -c "
+import logging, sys
+logging.getLogger('spotify').addHandler(logging.StreamHandler(sys.stdout))
+logging.getLogger('spotify').setLevel(logging.INFO)
+from dotenv import load_dotenv; load_dotenv(override=True)
+from src.spotify import search_songs
+search_songs('dark academia', limit=10)
+"
+reflection 
